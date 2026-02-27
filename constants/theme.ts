@@ -27,6 +27,27 @@ export const Colors = {
   },
 };
 
+/** Game-specific neon palette */
+export const GameColors = {
+  bg: '#0a0a1a',
+  bgGradientMid: '#1a0a2e',
+  bgGradientEnd: '#0f0f23',
+  neonPurple: '#a855f7',
+  neonViolet: '#8b5cf6',
+  neonPink: '#ec4899',
+  neonCyan: '#22d3ee',
+  neonBlue: '#3b82f6',
+  comboGold: '#facc15',
+  glowColor: 'rgba(139, 92, 246, 0.4)',
+  textPrimary: '#f1f5f9',
+  textSecondary: '#94a3b8',
+  textDim: 'rgba(148, 163, 184, 0.4)',
+  dangerRed: '#f87171',
+  successGreen: '#22c55e',
+  keyBg: 'rgba(30, 30, 55, 0.9)',
+  keyBorder: 'rgba(100, 100, 140, 0.25)',
+};
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
