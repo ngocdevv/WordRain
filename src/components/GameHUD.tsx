@@ -1,10 +1,17 @@
 /**
- * Game HUD — Score, Level, Combo, and Lives overlay.
+ * Game HUD — Score, Level, Combo overlay.
  * Positioned absolute over the Skia canvas.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSequence,
+    withSpring,
+    withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGameStore } from '../stores/game-store';
 
@@ -14,6 +21,21 @@ export function GameHUD() {
     const level = useGameStore((s) => s.level);
     const multiplier = useGameStore((s) => s.multiplier);
     const wordsInLevel = useGameStore((s) => s.wordsInLevel);
+
+    // Combo pill scale animation
+    const comboScale = useSharedValue(1);
+    const comboStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: comboScale.value }],
+    }));
+
+    useEffect(() => {
+        if (multiplier > 1) {
+            comboScale.value = withSequence(
+                withTiming(1.3, { duration: 100 }),
+                withSpring(1, { damping: 8, stiffness: 300 }),
+            );
+        }
+    }, [multiplier, comboScale]);
 
     return (
         <View
@@ -36,11 +58,11 @@ export function GameHUD() {
                     </View>
 
                     {multiplier > 1 && (
-                        <View style={styles.comboPill}>
+                        <Animated.View style={[styles.comboPill, comboStyle]}>
                             <Text style={styles.comboText}>
                                 {multiplier}x COMBO
                             </Text>
-                        </View>
+                        </Animated.View>
                     )}
 
                     <Text style={styles.wordsCount}>
