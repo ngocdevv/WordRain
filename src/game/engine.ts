@@ -62,7 +62,14 @@ export function tick(now: number, screenWidth: number, screenHeight: number) {
     const currentActive = getActiveWords();
     for (let i = 0; i < currentActive.length; i++) {
         const word = currentActive[i];
-        if (word.matched) continue;
+
+        // Matched words: freeze in place, release after exit animation (300ms)
+        if (word.matched) {
+            if (now - word.matchedTime > 300) {
+                releaseWord(word);
+            }
+            continue;
+        }
 
         word.y += word.speed * clampedDt;
 
@@ -101,9 +108,7 @@ export function processInput(typedText: string): {
 
             emitBurst(cx, cy);
             word.matched = true;
-
-            // Defer release so Skia can render the final frame
-            setTimeout(() => releaseWord(word), 50);
+            word.matchedTime = performance.now();
 
             // Update store
             useGameStore.getState().completeWord(word.text);

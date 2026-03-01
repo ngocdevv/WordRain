@@ -59,6 +59,8 @@ export interface WordEntity {
     matched: boolean;
     /** How many characters have been typed correctly so far */
     matchedChars: number;
+    /** Timestamp (ms) when word was matched — drives exit animation */
+    matchedTime: number;
 }
 
 // ── Object Pool ────────────────────────────────────────────
@@ -77,6 +79,7 @@ function createEmptyWord(): WordEntity {
         active: false,
         matched: false,
         matchedChars: 0,
+        matchedTime: 0,
     };
 }
 
@@ -97,6 +100,7 @@ export function releaseWord(word: WordEntity) {
     word.active = false;
     word.matched = false;
     word.matchedChars = 0;
+    word.matchedTime = 0;
 }
 
 // ── Helpers ────────────────────────────────────────────────
@@ -139,6 +143,7 @@ export function spawnWord(
     word.active = true;
     word.matched = false;
     word.matchedChars = 0;
+    word.matchedTime = 0;
     word.id = nextId++;
 
     return word;
@@ -155,5 +160,6 @@ export function resetPool() {
         w.active = false;
         w.matched = false;
         w.matchedChars = 0;
+        w.matchedTime = 0;
     });
 }
