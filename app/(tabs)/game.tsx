@@ -12,9 +12,14 @@ import {
     StatusBar,
     StyleSheet,
     TextInput,
-    useWindowDimensions,
-    View
+    View,
 } from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GameCanvas } from '../../src/components/GameCanvas';
@@ -25,17 +30,21 @@ import { initEngine, processInput } from '../../src/game/engine';
 import { useGameStore } from '../../src/stores/game-store';
 
 export default function GameScreen() {
-    const { height: screenHeight } = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const [typedText, setTypedText] = useState('');
     const inputRef = useRef<TextInput>(null);
     const [canvasHeight, setCanvasHeight] = useState(0);
 
+    // Shake animation
+    const shakeX = useSharedValue(0);
+    const shakeStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: shakeX.value }],
+    }));
+
     const gameStatus = useGameStore((s) => s.gameStatus);
     const startGame = useGameStore((s) => s.startGame);
     const resetGame = useGameStore((s) => s.resetGame);
 
-    // Measure the actual canvas container height via onLayout
     const handleCanvasLayout = useCallback((e: { nativeEvent: { layout: { height: number } } }) => {
         setCanvasHeight(e.nativeEvent.layout.height);
     }, []);
@@ -55,18 +64,35 @@ export default function GameScreen() {
         setTimeout(() => inputRef.current?.focus(), 100);
     }, [resetGame, startGame]);
 
-    const handleTextChange = useCallback(
-        (text: string) => {
-            setTypedText(text);
+    const handleTextChange = useCallback((text: string) => {
+        setTypedText(text);
+    }, []);
 
-            const result = processInput(text);
-            if (result.completed) {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                setTypedText('');
-            }
-        },
-        [],
-    );
+    const triggerShake = useCallback(() => {
+        const d = 8;
+        const t = 50;
+        shakeX.value = withSequence(
+            withTiming(-d, { duration: t }),
+            withTiming(d, { duration: t }),
+            withTiming(-d, { duration: t }),
+            withTiming(d, { duration: t }),
+            withTiming(-d / 2, { duration: t }),
+            withTiming(0, { duration: t }),
+        );
+    }, [shakeX]);
+
+    const handleSubmit = useCallback(() => {
+        if (!typedText) return;
+        const result = processInput(typedText);
+        if (result.completed) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else {
+            // Wrong word — shake + error haptic
+            triggerShake();
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        }
+        setTypedText('');
+    }, [typedText, triggerShake]);
 
     // ── Idle / Start Screen ──────────────────────────────────
     if (gameStatus === 'idle') {
@@ -86,7 +112,7 @@ export default function GameScreen() {
         >
             <StatusBar barStyle="light-content" />
 
-            {/* Skia game canvas — fills remaining space above keyboard */}
+            {/* Skia game canvas */}
             <View style={styles.canvasContainer} onLayout={handleCanvasLayout}>
                 {canvasHeight > 0 && (
                     <GameCanvas height={canvasHeight} />
@@ -94,13 +120,14 @@ export default function GameScreen() {
                 <GameHUD />
             </View>
 
-            {/* Native text input — styled as the input bar above keyboard */}
-            <View style={styles.inputBar}>
+            {/* Input bar with shake animation */}
+            <Animated.View style={[styles.inputBar, shakeStyle]}>
                 <TextInput
                     ref={inputRef}
                     style={styles.textInput}
                     value={typedText}
                     onChangeText={handleTextChange}
+                    onSubmitEditing={handleSubmit}
                     placeholder="Type the words..."
                     placeholderTextColor="rgba(148, 163, 184, 0.4)"
                     autoCapitalize="characters"
@@ -111,13 +138,14 @@ export default function GameScreen() {
                     keyboardAppearance="dark"
                     selectionColor="#a855f7"
                     showSoftInputOnFocus={true}
+                    blurOnSubmit={false}
                     onBlur={() => {
                         if (gameStatus === 'playing') {
                             setTimeout(() => inputRef.current?.focus(), 50);
                         }
                     }}
                 />
-            </View>
+            </Animated.View>
 
             {/* Game Over overlay */}
             {gameStatus === 'gameover' && (
@@ -156,3 +184,4 @@ const styles = StyleSheet.create({
         letterSpacing: 2,
     },
 });
+
