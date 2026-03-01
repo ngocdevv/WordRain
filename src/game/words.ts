@@ -61,7 +61,11 @@ export interface WordEntity {
     matchedChars: number;
     /** Timestamp (ms) when word was matched — drives exit animation */
     matchedTime: number;
+    /** Index into the color palette (0–5) */
+    colorIndex: number;
 }
+
+export const PALETTE_SIZE = 6;
 
 // ── Object Pool ────────────────────────────────────────────
 
@@ -80,6 +84,7 @@ function createEmptyWord(): WordEntity {
         matched: false,
         matchedChars: 0,
         matchedTime: 0,
+        colorIndex: 0,
     };
 }
 
@@ -144,6 +149,7 @@ export function spawnWord(
     word.matched = false;
     word.matchedChars = 0;
     word.matchedTime = 0;
+    word.colorIndex = Math.floor(Math.random() * PALETTE_SIZE);
     word.id = nextId++;
 
     return word;

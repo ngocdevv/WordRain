@@ -96,6 +96,16 @@ const SHIMMER_WIDTH = 80;
 /** Soft glow layer width */
 const SHIMMER_GLOW_WIDTH = 140;
 
+/** Curated color palette — [r, g, b] */
+const COLOR_PALETTE: [number, number, number][] = [
+    [139, 92, 246],   // purple
+    [34, 211, 238],   // cyan
+    [236, 72, 153],   // pink
+    [245, 158, 11],   // amber
+    [16, 185, 129],   // emerald
+    [59, 130, 246],   // blue
+];
+
 interface WordBoxProps {
     word: WordEntity;
     font: NonNullable<ReturnType<typeof useFont>>;
@@ -105,6 +115,7 @@ function WordBox({ word, font }: WordBoxProps) {
     const textMetrics = font.measureText(word.text);
     const boxWidth = textMetrics.width + WORD_BOX.PADDING_X * 2;
     const boxHeight = WORD_BOX.FONT_SIZE + WORD_BOX.PADDING_Y * 2;
+    const cl = COLOR_PALETTE[word.colorIndex];
 
     // Exit animation — scale 1→1.2, opacity 1→0 over 300ms
     const ANIM_DURATION = 300;
@@ -146,9 +157,9 @@ function WordBox({ word, font }: WordBoxProps) {
                 width={boxWidth}
                 height={boxHeight}
                 r={WORD_BOX.BORDER_RADIUS}
-                color="rgba(139, 92, 246, 0.15)"
+                color={`rgba(${cl[0]}, ${cl[1]}, ${cl[2]}, 0.15)`}
             >
-                <Shadow dx={0} dy={0} blur={16} color="rgba(139, 92, 246, 0.4)" />
+                <Shadow dx={0} dy={0} blur={16} color={`rgba(${cl[0]}, ${cl[1]}, ${cl[2]}, 0.4)`} />
             </RoundedRect>
 
             {/* Shimmer — two layers clipped, rotated 45° */}
@@ -213,7 +224,7 @@ function WordBox({ word, font }: WordBoxProps) {
                 width={boxWidth}
                 height={boxHeight}
                 r={WORD_BOX.BORDER_RADIUS}
-                color="rgba(168, 85, 247, 0.6)"
+                color={`rgba(${cl[0]}, ${cl[1]}, ${cl[2]}, 0.6)`}
                 style="stroke"
                 strokeWidth={1.5}
             />
