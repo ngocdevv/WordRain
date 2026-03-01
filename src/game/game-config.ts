@@ -7,8 +7,8 @@
 export const LAYOUT = {
     /** Top padding before words can spawn (fraction of height) */
     SPAWN_Y: 0,
-    /** Bottom line — if word passes this, it's a miss (fraction of height) */
-    DEATH_LINE: 0.65,
+    /** Bottom line — if word passes this, it's a miss (fraction of canvas height) */
+    DEATH_LINE: 0.94,
     /** Horizontal padding from screen edges */
     HORIZONTAL_PADDING: 24,
 } as const;
