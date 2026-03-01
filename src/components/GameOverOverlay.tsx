@@ -1,10 +1,18 @@
 /**
  * Game Over — full-screen result page.
  * Displays final score, stats, and action buttons.
+ * Uses manual fade-up animation via useEffect + useSharedValue.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGameStore } from '../stores/game-store';
 
@@ -21,6 +29,23 @@ function getRankInfo(score: number): { emoji: string; label: string } {
     return { emoji: '💪', label: 'Keep Going!' };
 }
 
+/** Hook: returns an animated style that fades up from offset → 0 */
+function useFadeUp(delay: number, duration = 500, offset = 30) {
+    const opacity = useSharedValue(0);
+    const translateY = useSharedValue(offset);
+
+    useEffect(() => {
+        const timingConfig = { duration, easing: Easing.out(Easing.cubic) };
+        opacity.value = withDelay(delay, withTiming(1, timingConfig));
+        translateY.value = withDelay(delay, withTiming(0, timingConfig));
+    }, []);
+
+    return useAnimatedStyle(() => ({
+        opacity: opacity.value,
+        transform: [{ translateY: translateY.value }],
+    }));
+}
+
 export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProps) {
     const insets = useSafeAreaInsets();
     const score = useGameStore((s) => s.score);
@@ -29,6 +54,14 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
 
     const { emoji, label } = getRankInfo(score);
     const avgPerWord = totalWords > 0 ? Math.round(score / totalWords) : 0;
+
+    // Staggered fade-up styles
+    const titleStyle = useFadeUp(0);
+    const rankStyle = useFadeUp(200);
+    const labelStyle = useFadeUp(350);
+    const scoreStyle = useFadeUp(500);
+    const statsStyle = useFadeUp(700);
+    const buttonsStyle = useFadeUp(900);
 
     const handleShare = async () => {
         try {
@@ -41,20 +74,26 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
     return (
         <View style={[styles.container, { paddingTop: insets.top + 40 }]}>
             {/* Title */}
-            <Text style={styles.gameOverText}>GAME OVER</Text>
+            <Animated.Text style={[styles.gameOverText, titleStyle]}>
+                GAME OVER
+            </Animated.Text>
 
             {/* Rank */}
-            <Text style={styles.rankEmoji}>{emoji}</Text>
-            <Text style={styles.rankLabel}>{label}</Text>
+            <Animated.Text style={[styles.rankEmoji, rankStyle]}>
+                {emoji}
+            </Animated.Text>
+            <Animated.Text style={[styles.rankLabel, labelStyle]}>
+                {label}
+            </Animated.Text>
 
             {/* Score card */}
-            <View style={styles.scoreCard}>
+            <Animated.View style={[styles.scoreCard, scoreStyle]}>
                 <Text style={styles.scoreLabel}>FINAL SCORE</Text>
                 <Text style={styles.scoreValue}>{score.toLocaleString()}</Text>
-            </View>
+            </Animated.View>
 
             {/* Stats row */}
-            <View style={styles.statsRow}>
+            <Animated.View style={[styles.statsRow, statsStyle]}>
                 <View style={styles.statItem}>
                     <Text style={styles.statNumber}>{totalWords}</Text>
                     <Text style={styles.statCaption}>Words</Text>
@@ -69,10 +108,10 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
                     <Text style={styles.statNumber}>Lv.{level}</Text>
                     <Text style={styles.statCaption}>Reached</Text>
                 </View>
-            </View>
+            </Animated.View>
 
             {/* Buttons */}
-            <View style={styles.buttonsContainer}>
+            <Animated.View style={[styles.buttonsContainer, buttonsStyle]}>
                 <Pressable
                     onPress={onRestart}
                     style={({ pressed }) => [
@@ -102,7 +141,7 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
                 >
                     <Text style={styles.menuText}>Back to Menu</Text>
                 </Pressable>
-            </View>
+            </Animated.View>
         </View>
     );
 }
