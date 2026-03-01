@@ -94,12 +94,29 @@ export default function GameScreen() {
         setTypedText('');
     }, [typedText, triggerShake]);
 
+    const handleBackToMenu = useCallback(() => {
+        resetGame();
+    }, [resetGame]);
+
     // ── Idle / Start Screen ──────────────────────────────────
     if (gameStatus === 'idle') {
         return (
             <>
                 <StatusBar barStyle="light-content" />
                 <StartScreen onStart={handleStart} />
+            </>
+        );
+    }
+
+    // ── Game Over — full-screen result page ───────────────────
+    if (gameStatus === 'gameover') {
+        return (
+            <>
+                <StatusBar barStyle="light-content" />
+                <GameOverOverlay
+                    onRestart={handleRestart}
+                    onBackToMenu={handleBackToMenu}
+                />
             </>
         );
     }
@@ -146,11 +163,6 @@ export default function GameScreen() {
                     }}
                 />
             </Animated.View>
-
-            {/* Game Over overlay */}
-            {gameStatus === 'gameover' && (
-                <GameOverOverlay onRestart={handleRestart} />
-            )}
         </KeyboardAvoidingView>
     );
 }

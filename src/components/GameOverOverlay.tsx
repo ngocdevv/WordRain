@@ -1,51 +1,106 @@
 /**
- * Game Over overlay — shown when lives reach 0.
- * Displays final score and restart button.
+ * Game Over — full-screen result page.
+ * Displays final score, stats, and action buttons.
  */
 
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGameStore } from '../stores/game-store';
 
 interface GameOverOverlayProps {
     onRestart: () => void;
+    onBackToMenu: () => void;
 }
 
-export function GameOverOverlay({ onRestart }: GameOverOverlayProps) {
+function getRankInfo(score: number): { emoji: string; label: string } {
+    if (score >= 5000) return { emoji: '🏆', label: 'Legendary!' };
+    if (score >= 3000) return { emoji: '🥇', label: 'Amazing!' };
+    if (score >= 1500) return { emoji: '🥈', label: 'Great Job!' };
+    if (score >= 500) return { emoji: '🥉', label: 'Not Bad!' };
+    return { emoji: '💪', label: 'Keep Going!' };
+}
+
+export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProps) {
+    const insets = useSafeAreaInsets();
     const score = useGameStore((s) => s.score);
     const level = useGameStore((s) => s.level);
     const totalWords = useGameStore((s) => s.totalWordsCompleted);
 
+    const { emoji, label } = getRankInfo(score);
+    const avgPerWord = totalWords > 0 ? Math.round(score / totalWords) : 0;
+
+    const handleShare = async () => {
+        try {
+            await Share.share({
+                message: `🌧️ Word Rain — I scored ${score.toLocaleString()} points!\n${totalWords} words • Level ${level}\n#WordRain`,
+            });
+        } catch { }
+    };
+
     return (
-        <View style={styles.overlay}>
-            <View style={styles.card}>
-                <Text style={styles.gameOverText}>GAME OVER</Text>
+        <View style={[styles.container, { paddingTop: insets.top + 40 }]}>
+            {/* Title */}
+            <Text style={styles.gameOverText}>GAME OVER</Text>
 
-                <View style={styles.statsContainer}>
-                    <View style={styles.statRow}>
-                        <Text style={styles.statLabel}>Final Score</Text>
-                        <Text style={styles.statValue}>{score.toLocaleString()}</Text>
-                    </View>
-                    <View style={styles.divider} />
-                    <View style={styles.statRow}>
-                        <Text style={styles.statLabel}>Level Reached</Text>
-                        <Text style={styles.statValue}>{level}</Text>
-                    </View>
-                    <View style={styles.divider} />
-                    <View style={styles.statRow}>
-                        <Text style={styles.statLabel}>Words Typed</Text>
-                        <Text style={styles.statValue}>{totalWords}</Text>
-                    </View>
+            {/* Rank */}
+            <Text style={styles.rankEmoji}>{emoji}</Text>
+            <Text style={styles.rankLabel}>{label}</Text>
+
+            {/* Score card */}
+            <View style={styles.scoreCard}>
+                <Text style={styles.scoreLabel}>FINAL SCORE</Text>
+                <Text style={styles.scoreValue}>{score.toLocaleString()}</Text>
+            </View>
+
+            {/* Stats row */}
+            <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{totalWords}</Text>
+                    <Text style={styles.statCaption}>Words</Text>
                 </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>{avgPerWord}</Text>
+                    <Text style={styles.statCaption}>Avg/Word</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                    <Text style={styles.statNumber}>Lv.{level}</Text>
+                    <Text style={styles.statCaption}>Reached</Text>
+                </View>
+            </View>
 
+            {/* Buttons */}
+            <View style={styles.buttonsContainer}>
                 <Pressable
                     onPress={onRestart}
                     style={({ pressed }) => [
-                        styles.restartButton,
-                        pressed && styles.restartPressed,
+                        styles.playAgainBtn,
+                        pressed && styles.playAgainPressed,
                     ]}
                 >
-                    <Text style={styles.restartText}>PLAY AGAIN</Text>
+                    <Text style={styles.playAgainText}>PLAY AGAIN</Text>
+                </Pressable>
+
+                <Pressable
+                    onPress={handleShare}
+                    style={({ pressed }) => [
+                        styles.shareBtn,
+                        pressed && styles.sharePressed,
+                    ]}
+                >
+                    <Text style={styles.shareText}>↗ Share Score</Text>
+                </Pressable>
+
+                <Pressable
+                    onPress={onBackToMenu}
+                    style={({ pressed }) => [
+                        styles.menuBtn,
+                        pressed && styles.menuPressed,
+                    ]}
+                >
+                    <Text style={styles.menuText}>Back to Menu</Text>
                 </Pressable>
             </View>
         </View>
@@ -53,70 +108,134 @@ export function GameOverOverlay({ onRestart }: GameOverOverlayProps) {
 }
 
 const styles = StyleSheet.create({
-    overlay: {
+    container: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        justifyContent: 'center',
+        backgroundColor: '#0a0a1a',
         alignItems: 'center',
         paddingHorizontal: 32,
     },
-    card: {
-        width: '100%',
-        backgroundColor: 'rgba(20, 15, 40, 0.95)',
-        borderRadius: 24,
-        padding: 32,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(139, 92, 246, 0.3)',
-    },
     gameOverText: {
-        fontSize: 32,
+        fontSize: 42,
         fontWeight: '900',
-        color: '#f87171',
-        letterSpacing: 4,
-        marginBottom: 28,
+        color: '#ec4899',
+        letterSpacing: 6,
+        marginBottom: 20,
     },
-    statsContainer: {
+    rankEmoji: {
+        fontSize: 48,
+        marginBottom: 8,
+    },
+    rankLabel: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#e2e8f0',
+        marginBottom: 32,
+    },
+    scoreCard: {
         width: '100%',
-        marginBottom: 28,
-    },
-    statRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: 24,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: 'rgba(148, 163, 184, 0.2)',
+        backgroundColor: 'rgba(20, 20, 45, 0.8)',
+        marginBottom: 24,
     },
-    statLabel: {
-        fontSize: 14,
-        color: 'rgba(148, 163, 184, 0.7)',
-        fontWeight: '500',
+    scoreLabel: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: 'rgba(148, 163, 184, 0.5)',
+        letterSpacing: 3,
+        marginBottom: 8,
     },
-    statValue: {
-        fontSize: 22,
+    scoreValue: {
+        fontSize: 52,
+        fontWeight: '900',
+        color: '#f1f5f9',
+        fontVariant: ['tabular-nums'],
+    },
+    statsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 32,
+        gap: 0,
+    },
+    statItem: {
+        alignItems: 'center',
+        paddingHorizontal: 24,
+    },
+    statNumber: {
+        fontSize: 24,
         fontWeight: '800',
         color: '#f1f5f9',
         fontVariant: ['tabular-nums'],
     },
-    divider: {
-        height: StyleSheet.hairlineWidth,
-        backgroundColor: 'rgba(100, 100, 140, 0.2)',
+    statCaption: {
+        fontSize: 11,
+        fontWeight: '500',
+        color: 'rgba(148, 163, 184, 0.5)',
+        marginTop: 4,
+        letterSpacing: 0.5,
     },
-    restartButton: {
+    statDivider: {
+        width: 1,
+        height: 32,
+        backgroundColor: 'rgba(148, 163, 184, 0.2)',
+    },
+    buttonsContainer: {
         width: '100%',
-        paddingVertical: 16,
-        borderRadius: 14,
-        backgroundColor: 'rgba(139, 92, 246, 0.25)',
-        borderWidth: 1,
-        borderColor: 'rgba(139, 92, 246, 0.5)',
+        gap: 14,
+    },
+    playAgainBtn: {
+        width: '100%',
+        paddingVertical: 18,
+        borderRadius: 16,
+        backgroundColor: '#22d3ee',
         alignItems: 'center',
     },
-    restartPressed: {
-        backgroundColor: 'rgba(139, 92, 246, 0.4)',
+    playAgainPressed: {
+        backgroundColor: '#06b6d4',
     },
-    restartText: {
+    playAgainText: {
+        fontSize: 18,
+        fontWeight: '900',
+        color: '#0a0a1a',
+        letterSpacing: 3,
+    },
+    shareBtn: {
+        width: '100%',
+        paddingVertical: 16,
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: '#a855f7',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    sharePressed: {
+        backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    },
+    shareText: {
         fontSize: 16,
-        fontWeight: '800',
+        fontWeight: '700',
         color: '#a855f7',
-        letterSpacing: 2,
+        letterSpacing: 1,
+    },
+    menuBtn: {
+        width: '100%',
+        paddingVertical: 14,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(148, 163, 184, 0.25)',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    menuPressed: {
+        backgroundColor: 'rgba(148, 163, 184, 0.08)',
+    },
+    menuText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: 'rgba(148, 163, 184, 0.6)',
+        letterSpacing: 0.5,
     },
 });
