@@ -26,7 +26,7 @@ import { GameCanvas } from '../../src/components/GameCanvas';
 import { GameHUD } from '../../src/components/GameHUD';
 import { GameOverOverlay } from '../../src/components/GameOverOverlay';
 import { StartScreen } from '../../src/components/StartScreen';
-import { initEngine, processInput } from '../../src/game/engine';
+import { initEngine, processInput, updatePartialMatch } from '../../src/game/engine';
 import { useGameStore } from '../../src/stores/game-store';
 
 export default function GameScreen() {
@@ -66,6 +66,7 @@ export default function GameScreen() {
 
     const handleTextChange = useCallback((text: string) => {
         setTypedText(text);
+        updatePartialMatch(text);
     }, []);
 
     const triggerShake = useCallback(() => {

@@ -85,6 +85,24 @@ export function tick(now: number, screenWidth: number, screenHeight: number) {
 }
 
 /**
+ * Update partial match highlights in real-time as user types.
+ * Called on every keystroke from handleTextChange.
+ */
+export function updatePartialMatch(typedText: string) {
+    const activeWords = getActiveWords();
+    const upperTyped = typedText.toUpperCase();
+
+    for (const word of activeWords) {
+        if (word.matched) continue;
+        if (upperTyped && word.text.startsWith(upperTyped)) {
+            word.matchedChars = upperTyped.length;
+        } else {
+            word.matchedChars = 0;
+        }
+    }
+}
+
+/**
  * Process typed input against active words.
  * Returns true if a word was completed.
  */
@@ -114,15 +132,6 @@ export function processInput(typedText: string): {
             useGameStore.getState().completeWord(word.text);
 
             return { completed: true, wordText: word.text, wordX: cx, wordY: cy };
-        }
-    }
-
-    // Highlight partial matches
-    for (const word of activeWords) {
-        if (word.text.startsWith(upperTyped)) {
-            word.matchedChars = upperTyped.length;
-        } else {
-            word.matchedChars = 0;
         }
     }
 
