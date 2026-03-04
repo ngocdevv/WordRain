@@ -5,8 +5,10 @@ import 'react-native-reanimated';
 export default function RootLayout() {
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="game" />
+        <Stack.Screen name="game-over" />
       </Stack>
       <StatusBar style="light" />
     </>
