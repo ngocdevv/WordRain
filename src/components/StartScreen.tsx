@@ -1,7 +1,3 @@
-/**
- * Start screen with title and play button.
- */
-
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 

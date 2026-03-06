@@ -1,9 +1,3 @@
-/**
- * Game Screen — active gameplay.
- * Full-screen layout: Canvas → HUD → Native Keyboard Input.
- * Auto-navigates to /game-over when lives reach zero.
- */
-
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -75,7 +69,6 @@ export default function GameScreenRoute() {
         if (result.completed) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } else {
-            // Wrong word — shake + error haptic
             triggerShake();
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
@@ -90,7 +83,6 @@ export default function GameScreenRoute() {
         >
             <StatusBar barStyle="light-content" />
 
-            {/* Skia game canvas */}
             <View style={styles.canvasContainer} onLayout={handleCanvasLayout}>
                 {canvasHeight > 0 && (
                     <GameCanvas height={canvasHeight} />
@@ -98,7 +90,6 @@ export default function GameScreenRoute() {
                 <GameHUD />
             </View>
 
-            {/* Input bar with shake animation */}
             <Animated.View style={[styles.inputBar, shakeStyle]}>
                 <TextInput
                     ref={inputRef}

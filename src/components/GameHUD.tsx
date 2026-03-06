@@ -1,8 +1,3 @@
-/**
- * Game HUD — Score, Level, Combo overlay.
- * Positioned absolute over the Skia canvas.
- */
-
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -22,7 +17,6 @@ export function GameHUD() {
     const multiplier = useGameStore((s) => s.multiplier);
     const wordsInLevel = useGameStore((s) => s.wordsInLevel);
 
-    // Combo pill scale animation
     const comboScale = useSharedValue(1);
     const comboStyle = useAnimatedStyle(() => ({
         transform: [{ scale: comboScale.value }],
@@ -43,7 +37,6 @@ export function GameHUD() {
             pointerEvents="none"
         >
             <View style={styles.topRow}>
-                {/* Left — Score */}
                 <View style={styles.scoreBlock}>
                     <Text style={styles.label}>SCORE</Text>
                     <Text style={styles.scoreValue}>
@@ -51,7 +44,6 @@ export function GameHUD() {
                     </Text>
                 </View>
 
-                {/* Right — Level, Combo, Words */}
                 <View style={styles.rightBlock}>
                     <View style={styles.levelPill}>
                         <Text style={styles.levelText}>LVL {level}</Text>

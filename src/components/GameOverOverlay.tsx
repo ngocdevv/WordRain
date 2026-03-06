@@ -1,9 +1,3 @@
-/**
- * Game Over — full-screen result page.
- * Displays final score, stats, and action buttons.
- * Uses manual fade-up animation via useEffect + useSharedValue.
- */
-
 import React, { useEffect } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -29,7 +23,6 @@ function getRankInfo(score: number): { emoji: string; label: string } {
     return { emoji: '💪', label: 'Keep Going!' };
 }
 
-/** Hook: returns an animated style that fades up from offset → 0 */
 function useFadeUp(delay: number, duration = 500, offset = 30) {
     const opacity = useSharedValue(0);
     const translateY = useSharedValue(offset);
@@ -55,7 +48,6 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
     const { emoji, label } = getRankInfo(score);
     const avgPerWord = totalWords > 0 ? Math.round(score / totalWords) : 0;
 
-    // Staggered fade-up styles
     const titleStyle = useFadeUp(0);
     const rankStyle = useFadeUp(200);
     const labelStyle = useFadeUp(350);
@@ -73,12 +65,9 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
 
     return (
         <View style={[styles.container, { paddingTop: insets.top + 40 }]}>
-            {/* Title */}
             <Animated.Text style={[styles.gameOverText, titleStyle]}>
                 GAME OVER
             </Animated.Text>
-
-            {/* Rank */}
             <Animated.Text style={[styles.rankEmoji, rankStyle]}>
                 {emoji}
             </Animated.Text>
@@ -86,13 +75,10 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
                 {label}
             </Animated.Text>
 
-            {/* Score card */}
             <Animated.View style={[styles.scoreCard, scoreStyle]}>
                 <Text style={styles.scoreLabel}>FINAL SCORE</Text>
                 <Text style={styles.scoreValue}>{score.toLocaleString()}</Text>
             </Animated.View>
-
-            {/* Stats row */}
             <Animated.View style={[styles.statsRow, statsStyle]}>
                 <View style={styles.statItem}>
                     <Text style={styles.statNumber}>{totalWords}</Text>
@@ -110,7 +96,6 @@ export function GameOverOverlay({ onRestart, onBackToMenu }: GameOverOverlayProp
                 </View>
             </Animated.View>
 
-            {/* Buttons */}
             <Animated.View style={[styles.buttonsContainer, buttonsStyle]}>
                 <Pressable
                     onPress={onRestart}
